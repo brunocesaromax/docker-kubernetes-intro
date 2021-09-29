@@ -1,0 +1,382 @@
+Comando para criar um container docker com uma imagem correspondente: 
+$ docker container run {image_name}
+
+Listar containers ativos:
+$ docker container ls
+
+Listar containers ativos e inativos:
+$ docker container ls -a
+
+Renomear container:
+$ docker container run --name meucontainer hello-world
+
+Remover container: 
+$ docker container rm {name or id}
+
+Declarar na execução do container a execução seguida da remoção:
+$ docker container run --name meucontainer --rm hello-world
+
+** Criando containers mais robustos **
+
+Dica: Ideal para estudar SO ubuntu sem máquina virtual
+
+1 - Criar container com o SO linux ubuntu em modo interativo (-i == modo interativo, t == modo tty):
+$ docker container run -it ubuntu /bin/bash
+
+
+2 - Container com o nginx bloqueado:
+$ docker container run nginx
+
+Container com o nginx sem bloqueio (modo demon):
+$ docker container run -d nginx
+
+Usando port bind (vínculo de porta local e porta do container) [Porta local depois porta container]:
+$ docker container run -d -p 8080:80 nginx
+
+Remoção pelo id do container: $ docker container rm -f {container_id}
+
+3 - Container com mongodb, passando argumentos [variáveis de ambiente neste caso] '-e'
+$ docker container run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=mongouser -e MONGO_INITDB_ROOT_PASSWORD=mongopwd mongo
+
+Remoção pelo id do container: $ docker container rm -f {container_id}
+
+
+** Comandos de resolução de problemas **
+
+
+Especifição de um container:
+$ docker container inspect {container_id}
+
+Modo interativo (terminal do container) de container que já esteja em execução:
+$ docker container exec -it {container_id} /bin/bash
+
+Parar um container que esteja em execução:
+$ docker stop {container_id}
+
+Iniciar um container que esteja parado:
+$ docker container start {container_id}
+
+Verificar logs de um container:
+$ docker container logs {container_id}
+
+Verificar número específico nos logs de um container:
+$ docker container logs -n 5 {container_id}
+
+Verificar número específico nos logs de um container:
+$ docker container logs -n 5 {container_id}
+
+Verificar logs continuamente em um container:
+$ docker container logs -f {container_id}
+
+Verificar logs continuamente com o tempo marcado em um container:
+$ docker container logs -t {container_id}
+
+
+** Imagens Docker **
+
+Formas de criar: 
+1 - Docker Commit (Não é uma boa prática, difícil de reproduzir, difícil de automatizar e não versionável)
+2 - Dockerfile (Instruções para criar uma imagem)
+
+** Docker Commit **
+
+$ docker container run -it ubuntu /bin/bash
+$ apt-get install curl
+$ docker commit {container_id} ubuntu-curl-commit
+$ docker image ls
+$ docker container run -it ubuntu-curl-commit /bin/bash
+$ docker container run ubuntu-curl-commit curl https://www.google.com
+
+
+** DockerFile **
+
+Criar arquivo Dockerfile
+
+Obs: Contexto do arquivo Dockerfile
+$ docker image build -t ubuntu-curl-file /home/brunocesar/Documents/Iniciativa\ Kubernetes
+$ docker image ls
+
+Ao executar novamente o comando: 
+'docker image build -t ubuntu-curl-file /home/brunocesar/Documents/Iniciativa\ Kubernetes', é utilizado o cache pois já foi executado anteriormente, é mais rápido mas pode haver problemas, pois pode utilizar lista de repositórios desatualizada.
+
+Limpar imagens não utilizadas <none>:
+$ docker image prune
+
+Ver histórico de criação de uma imagem, mostrando as camadas da imagem:
+$ docker image history ubuntu-curl-commit
+
+Executar o container:
+$ docker container run -it ubuntu-curl-file /bin/bash
+
+
+** Possibilidades com Dockerfile **
+
+Opções de uso no Dockerfile:
+FROM => inicializa o build de uma imagem a partir de uma imagem base
+RUN
+LABEL => Adiciona metadados a imagem
+CMD => Define o comando /e/ou os parâmetros padrão
+EXPOSE => Define que o container precisa expor a porta em questão
+ARG => Define o argumento pra ser usado na contrução da imagem
+ENV => Define variáveis de ambiente
+ADD => Copia arquivos ou diretórios ou arquivos remotos e adiciona ao sistema de arquivos da imagem
+COPY => Copia arquivos ou diretórios e adiciona ao sistema de arquivos da imagem
+ENTRYPOINT => Ajuda a configurar um container que pode ser executado como um executável
+VOLUME => Define volumes que devem ser definidos
+WORKDIR => Define diretório corrente
+
+
+** Primeira Aplicação **
+
+Aplicação javascript em node.js.
+
+- Criar arquivo Dockerfile no diretório contendo o projeto
+- Fazer o build da imagem da aplicação:
+$ docker image build -t conversao-temperatura .
+
+Rodar aplicação em um container:
+$ docker container run -d -p 8080:8080 conversao-temperatura
+
+Remover aplicação criada:
+$ docker container rm -f {container_id}
+
+
+** Boas práticas para construção de imagens Docker **
+
+1 - Nomear a imagem Docker seguindo padrão:
+
+Parão: Namespace/repositorio:tag
+Exemplo: brunocesar/api-conversão:v1
+
+Em imagens oficiais não há namespace, Ex: ubuntu:20.10
+
+Correção no nome da imagem docker do projeto conversão temperatura:
+$ docker image build -t brunocesar/conversao-temperatura:v1 .
+
+
+Observação importante: Dar preferência a imagens oficiais
+
+2 - Especificar a tag nas imagens para garantir idempotência na construção da imagem docker:
+
+Exemplo no Dockerfile:
+
+Errado, pega sempre a última versão: FROM node
+Correto: FROM node:14.17.5
+
+3 - Utilizar um processo por container (Visão de microserviços)
+
+4 - Aproveitamento das camadas de imagem
+
+Errado:
+FROM node:14.17.5
+WORKDIR /app
+COPY . .
+RUN npm install
+EXPOSE 8080
+ENTRYPOINT ["node","server.js"]
+
+Correto:
+FROM node:14.17.5
+WORKDIR /app
+COPY ./package*.json ./
+RUN npm install
+COPY . .
+RUN npm install
+EXPOSE 8080
+ENTRYPOINT ["node","server.js"]
+
+5 - Utilizar o .dockerignore
+
+6 - COPY vs ADD:
+
+Dar preferência pelo COPY sempre
+
+7 - ENTRYPOINT vs CMD
+
+ENTRYPOINT - Imutável, não aceita sobrescrever
+CMD - Mutável, aceita sobrescrever
+
+Pode se usar os dois juntos.
+
+8 - Passagem de argumentos na construção de imagens, caso necessário
+
+$ docker build -t brunocesar/ubuntu-arg:v1 --build-arg TAG="18.04" .
+
+9 - Multistage Build (Exemplo do go-app)
+
+- Imagens intermediárias para criar imagens finais mais leves
+- Bom uso para Java, Angular, C, C++
+
+** Docker Registry **
+
+O mais famoso: docker hub
+Outras opções: Elastic Container Registry, Azure Container Registry, Google Container Registry, Harbor
+
+
+Mandar repositório para o docker hub:
+
+$ docker login
+
+Utilizar o namespace do repositório [brunocesar96]:
+$ docker push brunocesar96/conversao-temperatura:v1
+
+Boa prática mandar versão latest também:
+$ docker tag brunocesar96/conversao-temperatura:v1 brunocesar96/conversao-temperatura:latest
+$ docker push brunocesar96/conversao-temperatura:latest
+
+Pegar imagem direto do docker hub e já executar em uma container local (Ter feito login previamente):
+$ docker container run -d -p 8080:8080 brunocesar96/conversao-temperatura:v1
+
+** Problema do Docker**
+
+- Encerramento e criação de containers de forma imediata quando necessário
+- Escalabilidade
+- Janelas de deploy
+
+Solução: Kubernetes, orquestrar containers e processos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
