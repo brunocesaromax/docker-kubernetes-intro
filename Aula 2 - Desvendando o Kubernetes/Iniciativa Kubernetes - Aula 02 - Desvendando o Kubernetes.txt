@@ -1,0 +1,201 @@
+** Teoria Introdutória **
+
+Kubernetes -> Orquestrador de containers
+
+Vantagens do Kubernetes:
+- balanceamento de carga
+- escalabilidade
+- resiliência
+- aplicações monolíticas também podem se beneficiar do uso
+
+Divisão:
+- Kubernetes Control Pane (Maestro) [Kube Api Server, ETCD, Kube Scheduler, Kube Controller Manager]
+- Kubernetes Node (Orquestra) [Kubelet, Kube Proxy, Container Runtime]
+
+
+Kubernetes descontinuou o uso do Docker, porém pode se usar o Docker fora do Kubernetes.
+Docker e Kubernetes não são concorrentes e sim complementares.
+
+
+** Prática **
+
+Formas de se criar um cluster Kubernetes:
+
+- On-Premisse - Trás controle total sobre o cluster Kubernetes, maior controle, maior dificuldade de se manter, gestão total do cluster (Tecnologias para se utilizar: Kubeadm, Kuberspray, RKE, K3S, MicroK8S)
+
+- Kubernetes as a Service - Pode se utilizar a AWS criando um cluster pelo seviço de nuvem, gerenciamento do cluster pelo serviço contratado (Tecnologias para se utilizar: AKS, EKS, GKE)
+
+- Local - Gerenciamento na máquina local, útil para aprendizado (Tecnologias para se utilizar localmente, não para produção: Minikube, Kind, K3D, MicroK8S, K3S)
+
+** Kind (Kubernetes In Docker)**
+
+- Utiliza containers Docker
+Tutorial de instalação:
+https://kind.sigs.k8s.io/docs/user/quick-start/#installation
+
+** KubeCTL **
+
+- Responsável por interagir com o cluster Kubernetes
+- Tutorial de instalação:
+https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+
+
+** Criando o cluster com Kind **
+
+$ ./kind create cluster
+
+Ver configuração do cluster:
+$ gedit /home/brunocesar/.kube/config
+
+Verificar nós:
+$ kubectl get nodes
+
+Verificar clusters criados pelo kind:
+$ ./kind get clusters
+
+Verificar containers criados pelo kind:
+$ docker container ls
+
+Criar cluster com nome:
+$ ./kind create cluster --name meucluster
+
+Remover clusters:
+$ ./kind delete cluster
+$ ./kind delete cluster --name meucluster
+
+Criar cluster seguindo um arquivo de configuração:
+
+- Criar arquivo cluster.yaml com as instrução de configuração do cluster
+- Executar:
+$ ./kind create cluster --name meucluster --config cluster.yaml
+$ kubectl get nodes
+$ docker container ls
+
+Observação: Quanto mais nós no cluster, maior a quantidade de recursos serão consumidos, analisar os recursos na criação de um cluster.
+
+** Elementos de deploy no Kubernetes ** 
+
+Elementos de um deploy eficiente no Kubernetes:
+
+1- POD -> menor objeto no cluster Kubernetes
+
+- Quando se escala a aplicação se escala os POD's
+- Para cada POD inserir uma parte da aplicação: API, FRONT, Banco de dados
+- Pode se ter mais de uma parte da aplicação, quando tiver uma parte principal (Ex: API) e uma parte auxiliar (Ex: Coletor de logs)
+
+- Ao criar o documento de configuraçãodo Pod, executar o seguinte comando para pegar a versão da apiVersion:
+$ kubectl api-resources
+
+-Após configurar o arquivo de manifesto configurando o pod, executar:
+$ kubectl create -f meupode.yaml
+$ kubectl get pods
+
+- Extrair mais detalhes do pod:
+$ kubectl describe pod {pod_name}
+
+- Mapeamento de porta local para a porta do container do pod:
+$ kubectl port-forward pod/meupod 8080:80
+
+- Remoção do pod:
+$ kubectl delete pod meupod
+$ kubectl get pods
+
+* Labels e Selectors
+
+- Configurar label na configuração do pod
+$ kubectl get pods -l app=web
+
+2 - Replicaset - responsável pela resiliência, escalabilidade e confiabilidade em relação aos pods
+
+$ kubectl api-resources | grep replicaset
+
+- Criar arquivo de manifesto para o replicaset, mesma estrutura do pod, e executar o seguinte comando de criação:
+$ kubectl apply -f meureplicaset.yaml
+$ kubectl get replicaset
+
+- Dessa forma ao deletar um pod outro pod será criado no lugar por causa das configurações do replicaset
+$ kubectl delete pod meureplicaset-d69w2
+
+3 - Deployment - Gerencia o replicaset e suas versões
+
+- Criar arquivo de manifesto para o deployment, mesma estrutura do replicaset, e executar o seguinte comando de criação:
+$ kubectl apply -f meudeployment.yaml
+$ kubectl get deployment
+
+- É criado o replicaset automaticamente
+
+- Ao aplicar alteração de configuração no manifesto do deployment, será alterado automaticamente o replicaset e os pods correspondentes, criando assim um histórico de alterações
+
+- Fazer rollback de alterações:
+$ kubectl rollout history deployment meudeployment
+$ kubectl rollout undo deployment meudeployment
+
+** Services -> Acesso aos pods e faz o balanceamento de carga entre as réplicas **
+
+Tipos de Service:
+1 - ClusterIP - Comunicação interna
+2 - NodePort - Cria comunicação externa, disponibilizando uma porta para tal comunicação, utilizado em ambiente On-Premisse
+2 - LoadBalancer - Usado ao trabalhar com ambiente As a Service
+
+
+- Para usar, deve-se alterar o arquivo de manifesto configurando o deployment
+
+- Para acesso externo com NodePort, deve-se utilizar o endereço IP de um container que esteja sendo executado e colocar a porta do service criado. Para pegar o IP: 
+$ docker inspect {container_id}
+
+-Comando para listar todos objetos criados do Kubernetes:
+$ kubectl get all
+
+
+** Primeira aplicação no Kubernetes **
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
