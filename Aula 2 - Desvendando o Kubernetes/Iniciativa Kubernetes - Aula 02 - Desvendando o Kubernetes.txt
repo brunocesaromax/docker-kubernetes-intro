@@ -149,9 +149,23 @@ $ kubectl get all
 
 ** Primeira aplicação no Kubernetes **
 
+$ git clone https://github.com/brunocesaromax/rotten-potatoes.git
 
+Criar arquivo Dockerfile no diretório src/ e fazer build da imagem docker:
+$ docker build -t brunocesar96/rotten-potatoes:v1 .
 
+Push do projeto no docker hub:
+$ docker login
+$ docker push brunocesar96/rotten-potatoes:v1
+$ docker tag brunocesar96/rotten-potatoes:v1 brunocesar96/rotten-potatoes:latest
+$ docker image ls
+$ docker push brunocesar96/rotten-potatoes:latest
 
+Criar diretório ks8 e criar e configurar o arquivo de deployment:
+$ mkdir k8s
+$ cd k8s
+$ gedit deployment.yaml
+$ kubectl apply -f deployment.yaml
 
 
 
