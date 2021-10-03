@@ -1,0 +1,103 @@
+** Pipeline CI/CD **
+
+Pipeline -> Sequência de instruções para realizar determinado processo, passo a passo, traz automação
+
+CI -> continuous integrations, código novo inserido no código existente depois de passar em testes (Codificação -> Commit -> Build -> Testes -> Geração de Pacote)
+
+CD -> continuous deployment (Release -> Teste -> Aceite -> Deploy em Produção/Homologação)
+
+CI/CD -> Ideal quando se usa micro-serviços
+
+** Github Actions **
+
+Uma solução do github para CI/CD.
+
+Elementos:
+- Workflow -> Rotina que é definida no repositório.
+- Events -> Estímulo ou ação que dispara o workflow.
+- Jobs -> Sequência de steps que podem ser executadas de forma paralela ou sequencial dentro do Workflow.
+- Steps -> Execução de um comando shell ou powershell ou uma action dentro de um Job.
+- Actions -> Instruções criadas em blocos de configuração, pode se usar as próprias actions ou as criadas na comunidade do github.
+- Runners -> Agente que vai executar as ações do Job, pode se usar os próprios ou os do Github.
+
+** Criação do Kubernetes na Digital Ocean **
+
+1 - Criar cluster Kubernetes
+2 - Baixar arquivo de config file e copiar para o diretório .kube/config:
+$ cp ~/Documents/iniciativa-k8s-kubeconfig.yaml ~/.kube/config
+
+3 - Na aplicação rotten-potatoes, mudar arquivo de configuração do deployment em ks8/deployment.yaml, para se usar o LoadBalancer
+
+** Pipeline Básica **
+
+Na aplicação rotten-potatoes do github, configurar as actions
+
+
+** Pipeline CI **
+
+Continuação da configuração no arquivo main.yml no github actions da aplicação.
+
+** Pipeline CD **
+
+Continuação da configuração no arquivo main.yml no github actions da aplicação.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
